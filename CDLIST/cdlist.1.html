@@ -1,0 +1,338 @@
+<html>
+<head>
+<title>
+CDLIST 1.0
+</title>
+</head>
+<body>
+<a href="http://www.pauahtun.org">
+<h1 align=center><img align=absmiddle border=0 src="http://www.pauahtun.org/Gif/god_nr.gif">&nbsp;CDLIST 1.0</h1>
+</a>
+<a name="contents">
+<h2>Name</h2>
+</a>
+<ul>
+  <font size=4><b>cdlist</b> - Directory Management Package for Korn Shell</font><font size=3><br>
+  <hr>
+  <center>
+  <a href="#syntax">[Syntax]</a>
+  <a href="#description">[Description]</a>
+  <a href="#download">[Download and Installation]</a>
+  <a href="#detailed">[Detailed Function Descriptions]</a>
+  <a href="#envv">[Environment Variables]</a>
+  <br>
+  <a href="#examples">[Examples]</a>
+  <a href="#files">[Files]</a>
+  <a href="#platforms">[Platforms Supported]</a>
+  <a href="#author">[Author, Copyright &amp; Disclaimer]</a>
+  </center>
+  <hr>
+</ul>
+<a name="syntax" href="#contents">
+<h2>Syntax</h2>
+</a>
+<ul>
+<b>Cdlist</b> exposes the following functions to a sourcing ksh instance:
+<p>
+  <ul>
+    <li><b>cd</b>&nbsp;&lt<i>directory</i>&gt;
+
+    <li><b>cdi</b>&nbsp;<i>number</i>
+    <li><b>cli</b>&nbsp;<i>number</i>
+    <li><b>up</b>
+    <li><b>down</b>
+    <li><b>bk</b>
+    <li><b>saveloadfile</b>&nbsp;&lt<i>file</i>&gt;
+    <li><b>overloadfile</b>&nbsp;&lt<i>file</i>&gt;
+    <li><b>cdl</b>
+  </ul>
+</ul>
+<a name="description" href="#contents">
+<h2>Description</h2>
+</a>
+<ul>
+<b><i>Cdlist</i></b> is a directory management package contained in the
+file <i>cdlist.ksh</i> which must be sourced to be useful:
+<pre>
+    $ . cdlist.ksh
+    $
+</pre>
+It's usually a good idea to put the source command as the last command
+in your <b>$ENV</b> file (a file sourced by a login ksh instance if the instance
+proves to be an interactive shell).  Doing so will export necessary variables
+and functions for use and (in the case of the functions) aliasing, confined
+only to interactive shells.
+<p>
+<b><i>Cdlist</i></b> provides several features not found in other directory
+history management packages.
+  <ul>
+    <li> Each directory visited is exported to an environment variable
+    <li> Directory names may contain spaces, even on Unix
+    <li> The directory list may be saved in a file on command
+    <li> A directory list is loaded from a file when <b><i>cdlist</i></b> is initialized; 
+    <li> The directory list may be reset to known values on command
+    <li> The <i>umask</i> may be set to different values for paths not containing
+    the username
+    <li> Individual directory entries may be cleared at will
+    <li> Portable to any version of <i>ksh</i> that supports array variables
+  </ul>
+</ul>
+<a name="download" href="#contents">
+<h2>Download and Installation</h2>
+</a>
+<ul>
+    The latest version of <b><i>cdlist</i></b> can be downloaded from
+    <a href="ftp://www.pauahtun.org/pub/cdlist.zip">www.pauahtun.org/pub/cdlist.zip</a>;
+    the zip file includes this documentation, which may be found separately
+    at <a href="http://www.pauahtun.org/cdlist.1.html">www.pauahtun.org/cdlist.1.html</a>.
+    <p>
+    To install, simply unzip <i><b>cdlist.zip</b></i> anywhere you want, and then copy
+    <i><b>cdlist.ksh</b></i> in a convenient place, such as your home directory, or some
+    special subdirectory of <b>~</b>.  In your <b>$ENV</b> file, add this line
+    at or near the end:
+    <pre>
+	<b>. cdlist.ksh</b>
+    </pre>
+    If you are running on a Windows95/98/NT machine, you should probably change the
+    above to:
+    <pre>
+	export NULLDEV=c:/dev/null # Or whereever you happen to have a /dev/null. ...
+	export &lt;<i>any other variables you choose to modify</i>&gt;
+	export &lt;<i>see the <a href="#envv" name="source">Environment Variables</a> section</i>&gt;
+	<b>. cdlist.ksh</b>
+    </pre>
+    If you have directories that you wish to be included in the directory list whenever
+    an interactive ksh session is started, place the directory names in a file named
+    <b>.preloaddirs</b> in your home directory.  Edit the file, and place all the directories
+    on a single line, separating individual names with the <b>|</b> character.  For example,
+    the line:
+    <pre>
+	d:/Users/Ivanlan|d:/Users/Ivanlan/KshStuff|e:/|e:/DB|e:/Maya|e:/inetpub/wwwroot|k:/Program Files
+    </pre>
+    is in my <b>.preloaddirs</b> file on one of my Windows NT machines.
+</ul>
+<a name="detailed" href="#contents">
+<h2>Detailed Function Descriptions</h2>
+</a>
+<h3>cd</h3>
+<ul>
+    Syntax:  <b>cd</b> or <b>cd <i>&lt;directory&gt;</i></b><br>
+    An alias for an internal function, which performs an unaliased <i>cd</i>;
+    searches the exported array variable <b>$_ll</b> for
+    a match for the new current directory.  If no <i>directory</i>
+    is specified, <b>~</b> becomes the current directory.
+    The current directory before
+    the <i>cd</i> becomes <b>$_oi</b>, used in the <i>bk</i> function.
+    If a match is found for the new current directory, nothing else is done;
+    otherwise, the new current directory is stored in the array variable <b>$_ll</b>.
+    All directories in the <b>$_ll</b> list are made available in the environment
+    under names following the pattern <b>$d<i>n</i></b>, where <i>n</i> is the index
+    of the directory in the array variable <b>$_ll</b>.  The <i>umask</i>
+    is set appropriately.
+</ul>
+<h3>cdi</h3>
+<ul>
+    Syntax:  <b>cdi <i>index</i></b><br>
+    Searches for <i>index</i> (a number greater than or equal to 0) in the current
+    directory list.  If found, <b>cd</b>s to that directory and performs all other
+    <b>cd</b> functions too.  My preferred alias for this function is "<b>@</b>", so
+    that, for example, "<b>@ 0</b>" sets the current working directory of my shell to my
+    home directory (0 is, by default, the index of <b>$HOME</b>).
+</ul>
+<h3>cli</h3>
+<ul>
+    Syntax:  <b>cli <i>index</i></b><br>
+    Clears the directory at <i>index</i> and resets the <b>$_ll</b> array variable
+    to eliminate index discontinuities.
+</ul>
+<h3>up</h3>
+<ul>
+    Syntax:  <b>up</b><br>
+    Performs a <b>cdi</b> to the next numerically greater index in the
+    directory list; on overflow, reverts to index <b>0</b>.
+</ul>
+<h3>down</h3>
+<ul>
+    Syntax:  <b>down</b><br>
+    Performs a <b>cdi</b> to the next numerically lesser index in the
+    directory list; if the index would become <b>&lt; 0</b>, changes
+    to the highest index in the directory list.
+</ul>
+<h3>bk</h3>
+<ul>
+    Syntax:  <b>bk</b><br>
+    Changes to the last visited directory in the list, effectively swapping the
+    values of <b>$_i</b> and <b>$_oi</b>.
+</ul>
+<h3>saveloadfile</h3>
+<ul>
+    Syntax:  <b>saveloadfile <i>&lt;file&gt;</i></b><br>
+    Writes the entire directory list array to <b><i>file</i></b>, or to
+    <b><i>~/.preloaddirs</i></b> if no <b><i>file</i></b> is specified.
+    This is never performed automatically, so that the contents of
+    <b><i>~/.preloaddirs</i></b> may be preserved across sessions.
+</ul>
+<h3>overloadfile</h3>
+<ul>
+    Syntax:  <b>overloadfile <i>&lt;file&gt;</i></b><br>
+    Reads <b><i>file</i></b>, or <b><i>~/.preloaddirs</i></b> if
+    <b><i>file</i></b> is not specified, converting the contents to an
+    array variable.  The syntax of the file is extremely simple; it's
+    just a single line containing directory names separated by `<b>|</b>'
+    characters.
+</ul>
+<h3>cdl</h3>
+<ul>
+    Syntax:  <b>cdl</b><br>
+    Displays the entire directory list, one line per entry.  Directory
+    entries are numbered, starting with <b>0</b>, representing the index
+    of that directory in the <b>$_ll</b> array.  The current directory is
+    marked with the <b>$blank$arrow</b> combination
+    (<img src="http://www.pauahtun.org/Gif/blank.gif" align=absmiddle><img src="http://www.pauahtun.org/Gif/arrow.gif" align=absmiddle>).  The last visited
+    directory is marked with the <b>$foobar</b> character (<img src="http://www.pauahtun.org/Gif/ufoobar1.gif" align=absmiddle>,
+    <img src="http://www.pauahtun.org/Gif/foobar.gif" align=absmiddle> or <img src="http://www.pauahtun.org/Gif/ufoobar.gif" align=absmiddle>).  If the current
+    and last directories are the same, this is marked with the <b>$foobar$arrow</b>
+    (<img src="http://www.pauahtun.org/Gif/ufoobar1.gif" align=absmiddle><img src="http://www.pauahtun.org/Gif/arrow.gif" align=absmiddle>)
+    combination.
+    <p align=center>
+    <img src="http://www.pauahtun.org/Gif/cdl3.gif">
+</ul>
+<a name="envv" href="#contents">
+<h2>Environment Variables</h2>
+</a>
+<ul>
+<h3>$NULLDEV</h3>
+  <ul>
+    If this variable is set, its value is used instead of <i>/dev/null</i>.
+  </ul>
+<h3>$OS</h3>
+  <ul>
+    If this variable is set to a value containing the string "<b>Windows</b>", then the
+    internal variable <i><b>_igncase</b></i> is set, and directory list matches
+    and searches are case-insensitive.  On Windows95/98, you may need to set and export
+    this variable in your <b>.profile</b> yourself, due to Microsoft inconsistencies.
+  </ul>
+<h3>$insideumask</h3>
+  <ul>
+    The <i>umask</i> for directories that have your username somewhere in the path;
+    if not set in the environment, the default value is <b>22</b>.
+  </ul>
+<h3>$outsideumask</h3>
+  <ul>
+    The <i>umask</i> for directories that do not have your username somewhere in the path;
+    if not set in the environment, the default value is <b>2</b>.
+  </ul>
+<h3>$arrow</h3>
+  <ul>
+    Current directory indicator;
+    should be the visual equivalent of three characters long.
+    If not set in the environment, a default value is supplied:
+    <img src="http://www.pauahtun.org/Gif/arrow.gif" align=absmiddle>
+  </ul>
+<h3>$foobar</h3>
+  <ul>
+    Last directory visited indicator;
+    should be the visual equivalent of one character
+    long.  If not set in the environment, a default value is supplied:
+    <img src="http://www.pauahtun.org/Gif/foobar.gif" align=absmiddle>,
+    <img src="http://www.pauahtun.org/Gif/ufoobar.gif" align=absmiddle> or
+    <img src="http://www.pauahtun.org/Gif/ufoobar1.gif" align=absmiddle>
+  </ul>
+<h3>$blank</h3>
+  <ul>
+    Filler character;
+    should be the visual equivalent of one character
+    long.  If not set in the environment, a default value is supplied:
+    <img src="http://www.pauahtun.org/Gif/blank.gif" align=absmiddle>
+  </ul>
+<h3>$_ll</h3>
+  <ul>
+    The array variable containing the entire list of visited directories; it's
+    exported, but shells receiving the export cannot read the values contained
+    within.  Controlled entirely by <b><i>cdlist</i></b>.
+  </ul>
+<h3>$_i</h3>
+  <ul>
+    The index of the current directory in <b>$_ll</b>; can be used as a read-only
+    variable, as in <b>$PS1</b>, but otherwise controlled entirely by <b><i>cdlist</i></b>.
+  </ul>
+<h3>$_oi</h3>
+  <ul>
+    The index of the last visited directory in <b>$_ll</b>.
+    Controlled entirely by <b><i>cdlist</i></b>, although it can also be used as
+    a read-only variable.
+  </ul>
+</ul>
+<a name="examples" href="#contents">
+<h2>Examples</h2>
+</a>
+<ul>
+  <p align=center>
+<img src="http://www.pauahtun.org/Gif/cdl1.gif"><br>
+<b><i>cdl</i> in a ksh Window</b>
+<p align=center>
+<img src="http://www.pauahtun.org/Gif/cdl2.gif"><br>
+<b>Directory Environment Variables $d0-$d5</b>
+
+<p align=center>
+<img src="http://www.pauahtun.org/Gif/cdl4.gif"><br>
+<b><i>cdi</i> (aliased to "@") in a ksh Window</b>
+
+<p align=center>
+<img src="http://www.pauahtun.org/Gif/cdl5.gif"><br>
+<b>Using the Directory Environment Variables</b>
+
+</ul>
+<a name="files" href="#contents">
+<h2>Files</h2>
+</a>
+<ul>
+  <li>~/.preloaddirs
+  <li>~/.profile ($HOME/profile.ksh for MKS Korn Shell)
+  <li>cdlist.ksh
+  <li>/dev/null (or equivalent)
+</ul>
+<a name="platforms" href="#contents">
+<h2>Platforms Supported</h2>
+</a>
+<ul>
+Any platform that supports Ksh with array variables.  The package was
+developed under U/WIN, which is an implementation of Ksh93 by David Korn
+(available at <a href="http://www.research.att.com/sw/tools/uwin/">www.research.att.com</a>).
+It was then transplanted, without change, to the
+UnixWare&reg; implementation of Ksh88 and to the MKS version of ksh
+(available at <a href="http://www.mks.com">www.mks.com</a>).
+The only changes required were those specific
+to Windows.
+<p>
+I have not, however, tried <b><i>cdlist</i></b> on <i>pdksh</i>, available at 
+several locations on the internet.
+</ul>
+<a name="author" href="#contents">
+<h2>Author, Copyright &amp; Disclaimer</h2>
+</a>
+<ul>
+  <b><i>Cdlist</i></b> program and documentation copyright &copy; 1998 by
+  Ivan Van Laningham <a href="mailto:ivanlan@callware.com">(ivanlan@callware.com)</a><br>
+  Home page: <a href="http://www.pauahtun.org">http://www.pauahtun.org&nbsp;<img align=absmiddle border=0 src="http://www.pauahtun.org/Gif/god_n.gif"></a>
+  <p>
+  Permission to use, copy, modify, and distribute this
+  software and its documentation for any purpose and without fee
+  or royalty is hereby granted, provided that the above
+  copyright notice appear in all copies and that both the
+  copyright notice and this permission notice appear in
+  supporting documentation or portions thereof, including
+  modifications, that you make.
+
+  <p>
+  THE AUTHOR IVAN VAN LANINGHAM DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL THE AUTHOR BE
+  LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR
+  ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+  PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+  TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
+  OR PERFORMANCE OF THIS SOFTWARE!
+</ul>
+</body>
+</html>
