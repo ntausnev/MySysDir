@@ -1,0 +1,38 @@
+# Define some convenient aliases
+
+alias logoff='exit'
+alias bye='exit'
+alias cls='clear'
+alias ls='\ls   -F'
+alias lrt="\ls  -FLrt"
+alias llrt="\ls -lart"
+alias dots="ls -lFd .*"
+
+alias df='df -k'
+alias dirt='ls -alFt|head -18'
+
+alias dirac="sftp -oport=2222 dirac"
+
+# Set the prompt to show who's who
+myuserid="$(whoami)"
+myhostid=$(basename $(hostname) '.gsfc.nasa.gov')
+
+# Make cursor keys recall commands in emacs mode
+set -o emacs
+alias __A=
+alias __B=
+alias __C=
+alias __D=
+alias __H=
+alias __P=
+alias __0=[
+alias __1=[
+alias __2=[
+alias __3=[
+alias __4=[
+alias __5=[
+alias __6=[
+alias __7=[
+alias __8=[
+alias __9=[
+alias __q=

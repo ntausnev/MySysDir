@@ -1,0 +1,24 @@
+echo "Executing from TNL .kshrc "
+export  LS_COLORS=''
+unalias ls
+alias ls='/bin/ls -F --time-style=long-iso'
+export COLUMNS=132
+######################################
+# ------ SETUP prompt  --- start ---
+#
+
+PS1=$'\E[32m''
+$(hostname -s): $(pwd)   !   $(date +%T)  $(date +%h/%d)
+
+\$ '$'\E[0m'
+# $'\E[31m' ---> start RED
+# $'\E[0m'   ---> start normal display
+
+# ------ SETUP prompt  ---  end  ---
+######################################
+# fasd (pronounced similar to "fast") is a command-line
+# productivity booster. Fasd offers quick access to
+# files and directories
+#eval "$(fasd --init posix-alias posix-hook)"
+
+

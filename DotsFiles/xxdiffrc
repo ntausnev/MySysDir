@@ -1,0 +1,50 @@
+
+#
+# Sample .xxdiffrc file:
+#
+#
+# Full screen xxdiff:
+#
+#Geometry : Maximize
+Geometry : 1200x700-10+50
+Geometry: 2200x1300
+#
+# Keyboard customizations
+#
+#Accel.Exit: 		"Alt+Q"
+Accel.Exit: 		"Ctrl+Q"
+#
+
+#
+# Fonts
+#
+FontText: "Luxi Mono,14,-1,5,75,0,0,0,0,0"
+#
+#
+# Colors
+#
+Color.DiffAll.Back: "#ee0b31"
+Color.Insert.Back: "#00ffff"
+Color.Same.Back: "#33f807"
+#
+# Displayed stuff:
+Show.Toolbar:      true
+Show.Toolbar:      false
+Show.VerticalLine: true
+Show.LineNumbers : false
+Show.Filenames:    true
+
+#
+# Commands
+#
+Command.DiffDirectories: "diff -q -s -a"
+Command.DiffDirectoriesRec: "diff -q -s -r -a"
+Command.DiffFiles2: "diff -a -d"
+Command.DiffFiles3: "diff3 -a"
+Command.Edit: "xterm -exec vim"
+#
+# Other options
+#
+TabWidth: 3
+Show.VerticalLine: True
+FormatClipboardText: False

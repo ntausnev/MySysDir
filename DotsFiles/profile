@@ -1,0 +1,1952 @@
+#
+# 08/26/09 added function get_nice_ksh in.ksh or get_nice_rb in.ksh
+# Added alias meld="/usr/local/other/meld/1.1.5/bin/meld"
+# Adedd function  get_nice_perl
+#
+# This is the default standard .profile provided to sh users.
+# They are expected to edit it to meet their own needs.
+#
+# The commands in this file are executed when an sh user first
+# logs in.
+#
+# $Revision: 1.8 $
+#
+
+if [ -z "$ENVONLY" ]
+then
+	# Set the interrupt character to Ctrl-c and do clean backspacing.
+	if [ -t 0 ]
+	then
+		stty intr '^C' echoe
+	fi
+
+	# Set the TERM environment variable
+	eval `tset -s -Q`
+fi
+
+# Set the default X server.
+if [ ${DISPLAY:-setdisplay} = setdisplay ]
+then
+    if [ ${REMOTEHOST:-islocal} != islocal ]
+    then
+        DISPLAY=${REMOTEHOST}:0
+    else
+        DISPLAY=:0
+    fi
+    export DISPLAY
+fi
+
+stty erase ^H  # fix backspace
+stty kill  ^u  # remove command line CTRL-U
+
+
+    #################
+   ##             ##
+  ##  VARIABLES  ##
+ ##             ##
+#################
+
+OS=$(uname)
+CHIP=$(uname -p)
+string=$(hostname)
+MACHINE=${string%%\.*}   # for poncho
+
+export EDITOR=${vim_path}/vim
+export VISUAL=${vim_path}/vim
+export EDITOR=$(whence vim)
+export VISUAL=$(whence vim)
+
+if [[ $CHIP = "x86_64" ]]
+then
+  export EDITOR=${vim_path}/vim # from more/less start vim
+  export VISUAL=${vim_path}/vim # from more/less start vim
+fi
+
+export GRAPHCAP=X11        # NCAR Graphics device you are using
+export TERM=vt100
+export TERM=xterm    # longer command line
+#export COLUMNS=132   # longer command line
+# The number of commands to remember in the command history (default is 500)
+export HISTSIZE=1000
+export HISTFILE="$HOME/.histfile"
+
+export USERNAME=$(logname)   # has problem when start job from qsub
+export USERNAME="ntausnev"    # TNL this a temporary fix
+
+export MySysDir=$HOME/MySysDir
+export CMRUNDIR=/discover/nobackup/ntausnev/RUNS_ME  # TNL
+
+export LANG="en_US"   # Fix bug for perl
+export  LS_COLORS=""; unalias ls
+#alias ls="/bin/ls -ph" # file-type: append indicator (one of /=@|) to entrie
+
+set -o monitor  # to have a message when a background job ends
+set -o notify   # set notify if want to be notified about background job completion
+
+#if [[ $OS = "Linux" ]]
+#then
+# set -o vi-tabcomplete # Tab completion    # TNL Corrected 07-11-08
+# set -o vi-esccomplete # Esc completion    # TNL Corrected 07-11-08
+#fi
+
+#set -o emacs         # put at .env
+
+# disable ^D to logout; must type exit to exit the shell
+set -o ignoreeof
+
+if [[ $MACHINE = "poncho" ||  $MACHINE = "athena" ]]
+then
+  export USERNAME="nick"
+  NOBACKUP=/tmp/${USERNAME}
+  TMPDIR=/tmp/${USERNAME}    # used in external shell function
+  VDIR=${NOBACKUP}/vim       # backup for vim
+  ZDIR=${NOBACKUP}/Z_Deleted_Files
+  export PRINTER=pub2duplex
+fi
+
+if [[ $CHIP = "ia64" ]]
+then
+  NOBACKUP=/explore/nobackup/${USERNAME}
+  TMPDIR=/tmp/${USERNAME}    # used in external shell function
+  VDIR=${NOBACKUP}/vim       # backup for vim
+  ZDIR=/lscr1/${USERNAME}/Z_Deleted_Files
+fi
+
+if [[ $CHIP = "x86_64" ]]
+then
+  NOBACKUP=/discover/nobackup/${USERNAME}
+  TMPDIR=/tmp/${USERNAME}    # used in external shell function
+  VDIR=${NOBACKUP}/vim       # backup for vim
+  ZDIR=${NOBACKUP}/Z_Deleted_Files
+fi
+
+GODIR=${NOBACKUP}/GO    # for go_run
+TRASH_DIR="${ZDIR}/Z_"  # will append Trash
+
+mkdir -p ${NOBACKUP}    #
+mkdir -p ${GODIR}       # for go_run
+mkdir -p ${MySysDir}    # General/custom for me
+mkdir -p ${TMPDIR}      # for cvs commit
+mkdir -p ${VDIR}        # backup for vim
+mkdir -p ${ZDIR}        # Z_Deleted_Files
+
+export GODIR NOBACKUP TMPDIR VDIR ZDIR
+export MySysDir
+export TRASH_DIR
+
+    #############
+   ##         ##
+  ##  ALIAS  ##
+ ##         ##
+#############
+
+alias up="cd ..; ls"
+alias emacs="emacs -font rom22"
+alias emacs="emacs "
+
+alias fn="typeset +f"  # Show all build ksh Function Names
+alias fun="typeset -f" # Show all build ksh Function Definitions
+
+#alias gv="ghostview $1" # Does not work 18.10.11 - 14:34
+alias gv="/usr/bin/gv"
+
+alias h=" cd ~; ls"      # HOME
+alias hr=" cd ~; ls -rt" # HOME fresh time last
+alias hi="history -50"
+
+#alias more="more -i -w"
+alias more="\less -i"
+alias m="\less -i"
+alias b10="du -hsx * | sort -rh | head -10"
+
+# ########### plot six graph ##########################
+  alias plot6="$HOME/LIB_PLOT/plot6.ksh $1"
+  alias plot6h="$HOME/LIB_PLOT/plot6h.ksh $1"
+  alias plot6hm="$HOME/LIB_PLOT/plot6h_msf.ksh $1"
+
+if [[ $CHIP = "ia64" ]]
+then
+  export TZ=America/New_York
+  export NETCDF_HOME="/local/LinuxIA64/netcdf/netcdf-3.6.0-p1"
+  export MPI_HOME="/opt/sgi/mpt/1.12.0.0"
+  alias god="cd /lscr1/${USERNAME}/Z_Deleted_Files; ls"
+  alias gop="cd $HOME/PALM;ls "
+  alias got="cd /lscr1/${USERNAME}; ls"
+  alias ctags="/explore/nobackup/ntausnev/ctags-5.6/ctags"
+fi # if [[ $CHIP = "ia64" ]]
+
+if [[ $CHIP = "x86_64" ]]
+then
+  export TVDSVRLAUNCHCMD=ssh # totalview variable
+  export NETCDF_HOME="/usr/local/other/netcdf/4.1.1/GNU"           # TNL 7-27-10
+  export NETCDF_HOME="/usr/local/other/netcdf/3.6.2_intel-10.1.013"  # 19.09.11 - 20:18
+  PATH=$PATH:${NETCDF_HOME}/bin
+  export MPI_HOME="/opt/scali"
+
+  ### NCARG lines start ###
+ #export NCARG_ROOT=/usr/local/other/ncl/5.1.1_intel-11.1.038  # idt did not work
+  export NCARG_ROOT=/usr/local/other/ncl/5.0.0_intel-9.1.052   # dt  work
+  PATH=$PATH:${NCARG_ROOT}/bin
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib64
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/baselibs/v2_2r2_9.1.042.meta_new/Linux/lib # for idt
+  ### NCARG lines end   ###
+
+  ### NCO lines start ###
+  export NCO_HOME=/usr/local/other/NCO/4.0.2/Intel-11.1.038
+  export NCO_HOME=/usr/local/other/NCO/3.9.9_gcc             # 12.11.13 - 09:56
+  export NCO_HOME=/usr/local/other/SLES11.1/nco/4.2.3/intel-12.1.0.233 # 12.11.13 - 10:06
+  PATH=$PATH:${NCO_HOME}/bin
+  export MANPATH=$MANPATH:${NCO_HOME}/man
+  ### NCO   lines end   ###
+
+  ### CMOR  lines start ###
+  export CMOR_HOME=/usr/local/other/cmor/2.0rc10
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/zlib/1.2.3_sharedGNU/lib
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/szip/2.1/gcc-4.1.2/lib
+
+# export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/udunits/2.0.3_intel-10.1.021/lib
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/udunits/2.0.3_GNU/lib
+
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/hdf5/1.8.3_serialGNU/lib
+# export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/hdf4/4.2r4_GNU/lib
+
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/uuid/1.6.2/lib
+
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/netcdf/4.1.1/GNU/lib
+  CMOR_PYTHON=/usr/local/other/Python-2.5.4/lib/python2.5/site-packages/cmor
+  ### CMOR  lines end   ###
+
+  ### CDAT lines start ###
+  export CDAT_HOME="/usr/local/other/CDAT/5.2_GNU"
+  PATH=$PATH:${CDAT_HOME}/bin
+  function my_vcdat # check out current modelE
+#  USAGE= my_vcdat name_dir
+{
+   typeset local_var
+   local_var=${LD_LIBRARY_PATH}
+   unset LD_LIBRARY_PATH
+
+   export LD_LIBRARY_PATH=${CDAT_HOME}/lib:$LD_LIBRARY_PATH
+   export LD_LIBRARY_PATH=${CDAT_HOME}/Externals/lib:$LD_LIBRARY_PATH
+   vcdat
+   export LD_LIBRARY_PATH=${local_var}
+}  # end function  my_vcdat
+######################################
+  ### CDAT lines end   ###
+
+  alias xdiff="xxdiff "
+  alias xdiffs="xxdiff  -a -b -w -B -r  "
+# alias meld="/gpfsm/dnb1/mbhat/Qian3/bin/meld "
+  alias meld="/usr/local/other/meld/1.1.5/bin/meld "
+  alias ctags="/usr/local/other/ctags/5.8/bin/ctags -V --language-force=Fortran "
+# alias gv="/usr/X11R6/bin/gv"
+  alias gv="/usr/bin/gv"
+  alias goif="cd /discover/nobackup/projects/giss/prod_input_files" # go input files
+  alias goexec="cd /discover/nobackup/projects/giss/exec"           # go exec  files
+
+  alias mis_tar="grep -h ' has ' z_chk_arch_* | grep -v 120"
+
+  alias shq="/usr/local/bin/showquota"
+  alias shf="/home/ntausnev/POST_PROC_TNL_nc/show_age_fort.ksh" # Shows age of  fort.[12].nc
+  alias shp="/home/ntausnev/POST_PROC_TNL_nc/show_age_prt.ksh"  # Shows age .PRT files
+
+  PATH=$PATH:~/.vim/bin  # omni completion for perl
+
+  ### git lines start ###
+# export GIT_HOME=/usr/local/other/Git/1.6.6_GNU
+# export GIT_HOME=/usr/local/other/git/1.7.3.4_GNU
+  export GIT_HOME=/usr/local/other/SLES11.1/git/1.8.5.2/libexec/git-core # 08.22.14
+  PATH=$PATH:${GIT_HOME}
+  export GIT_EXEC_PATH=${GIT_HOME}
+  export GIT_EDITOR=$(whence vi)  # get old version vim
+  export GIT_EDITOR=$EDITOR
+  export GIT_COMMITTER_NAME="Nick Tausnev"
+  export GIT_COMMITTER_EMAIL="ntausnev@giss.nasa.gov"
+  export GIT_EXTERNAL_DIFF="/usr/local/other/vim/7.3/bin/vim -d"
+
+# PATH=$PATH:/usr/local/other/curl/7.19.6:/usr/local/other/curl/7.19.6/bin
+  PATH=$PATH:/usr/local/other/curl/7.19.6/bin
+  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/other/curl/7.19.6/lib"
+######################################
+function git_me # clone modelE directory
+#  USAGE= git_me name_clone
+{
+   name_clone=$1
+   git clone ${USER}@simplex.giss.nasa.gov:/giss/gitrepo/modelE.git ${name_clone}
+}  # end function git_me
+######################################
+
+  ### git lines end   ###
+
+
+fi # if [[ $CHIP = "x86_64" ]]
+
+alias glr="/usr/local/other/vim/7.3/bin/vim /home/ntausnev/POST_PROC_TNL_nc/RUNS_LIST_AR5_H" # get list runs
+
+
+#alias goa="cd /archive/u/${USERNAME}"
+export ARCHIVE=/archive/u/${USERNAME}
+#alias goa="cd $ARCHIVE"
+alias ggiss="cd /discover/nobackup/projects/giss_ana/users/ntausnev; ls"
+alias gg_me="cd /discover/nobackup/projects/giss_ana/users/ntausnev/RUNS_ME/; ls"
+alias goak="cd ${NOBACKUP}/RUNS_AKEY_diag; ls" # go Atmospheric Key diagnostics data files
+alias goakp="cd /home/ntausnev/POST_PROC_TNL_nc/KEY_DIAG; ls" # go Atmospheric Key programms
+alias goan="cd /home/ntausnev/POST_PROC_TNL_nc; ls" # do analysis
+alias gocr="cd /discover/nobackup/ntausnev/RUNS_CRONTAB; llrt"
+alias god="cd ${ZDIR}; ls"
+alias godp="cd ${ZDIR}/PP; ls"
+alias gof="cd ${HOME}/MY_MODULES_F90; ls"
+alias gog="cd ${GODIR}; ls"
+alias goid="cd ${NOBACKUP}/RUNS_ME"
+alias golpl="cd ${NOBACKUP}/RUNS_LPL; ls"
+alias gom="cd ${MySysDir}; ls"
+alias gomd="cd ${MySysDir}/DotsFiles; ls"
+alias gome="cd ${NOBACKUP}/MEs; ls"             # go MEs
+alias gomer="cd ${NOBACKUP}/MEs; ls -lrt "      # go MEs
+alias gomm="cd ${MySysDir}/MAKEFILES; ls"
+alias gomv="cd ${MySysDir}/vim/; ls"
+alias gon="cd ${NOBACKUP}; ls"
+alias gonr="cd ${NOBACKUP}; ls -lart"
+alias gopp="cd ${HOME}/POST_PROC; ls"
+alias gopph="cd ${HOME}/HYCOM_DIAGS_PL; ls"
+alias goppd="cd ${NOBACKUP}/RUNS_PP; ls"
+alias gor="cd ${NOBACKUP}/RUNS_ME; ls"
+alias gorr="cd ${NOBACKUP}/RUNS_ME; ls -lart"
+alias gospf="cd "
+alias gost="cd ${HOME}/SETUP_ME_ALL; ls -lart"
+alias go2sib="cd ${ARCHIVE}/z2Sibiria; ls -lart"
+alias go4sib="cd ${ARCHIVE}/z4Sibiria; ls -lart"
+alias got="cd ${TMPDIR}; ls"
+alias gotr="cd ${ZDIR}/Z_Trash; ls"
+alias gov2="cd /discover/nobackup/ntausnev/MEs/AR5_v2; ls"
+
+#alias ncdump="${NETCDF_HOME}/bin/ncdump -h"  # Discover
+#alias ncgen="${NETCDF_HOME}/bin/ncgen3"  # Discover
+alias myspace="du -sh * | sort -rn | more"
+
+alias rm="${MySysDir}/MyStuff/my_rm.ksh $1"
+alias rm_d0="find . -type d -empty -exec rmdir {} \;" # Delete empty dirs
+#alias rm_d0="perl -MFile::Find -e"finddepth(sub{rmdir},'.')" # Delete empty dirs
+alias ls_d0="find . -type d -empty -print" # list empty dirs
+
+alias trsh="${MySysDir}/MyStuff/trsh.pl"
+
+# Tree view
+alias tree="ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'"
+
+alias broken_links="( find ./ -type l | xargs file ) | grep 'broken symbolic link' "
+#alias broken_links_ls="find ./ -type l | /usr/bin/perl -nle '-e || print' | /usr/bin/xargs ls"
+#alias broken_links_rm="find ./ -type l | /usr/bin/perl -nle '-e || print' | /usr/bin/xargs rm"
+
+# pick one of the following for the default umask
+# CHECK !!!
+#umask 002       # relaxed       -rwxrwxr-x
+umask 0022       # 06.18.2010    -rw-r--r-- for file and drwxr-xr-x for directory
+# create files with default permissions
+# # create files with default permissions -rw-r--r-- (or -rwx-r-xr-x) umask 022
+# umask 022     # cautious      -rwxr-xr-x
+# umask 027     # uptight       -rwxr-x---
+# umask 077     # paranoid      -rwx------
+# you can override the default umask
+# for specific groups later...
+#
+#export PAGESIZE_DATA=64
+#export PAGESIZE_STACK=64
+#export PAGESIZE_TEXT=64
+export MP_SET_NUMTHREADS=4
+export MPC_GANG=off
+export _DSM_FOP=on
+export _DSM_ROUND_ROBIN=on
+alias myjobs="ps -ef | head -1 ; ps -ef | \
+     grep ${USERNAME} | grep -v sort | grep -v grep | \
+     grep -v head | grep -v ps | sort +6nr | head -19 "
+alias mj="ps -ef | head -1 ; ps -ef | \
+     grep ${USERNAME} | grep -v sort | grep -v grep | \
+     grep -v head | grep -v ps | sort +6nr | head -19 "
+#alias myjobs="ps -ef | gawk 'FNR==1 || $1=="ntausnev" {print}' | grep -v ps | grep -v gawk" #
+alias mybjobs="qstat -a | grep ${USERNAME}"
+alias mbj="qstat -a | grep ${USERNAME}"
+alias mbjt="/home/ntausnev/POST_PROC_TNL/mbj_fort.ksh"
+alias mgrep="${MySysDir}/MyStuff/mgrep.pl"   # skip tags files
+alias rgrep="${MySysDir}/MyStuff/rgrep.pl"
+alias ack="${MySysDir}/MyStuff/ack.pl --pager='less -r' --sort-files "
+alias  rg="${MySysDir}/MyStuff/rg -i "
+alias dispus="${MySysDir}/MyStuff/dispus27.ksh"
+alias mppcombine="$HOME/MPPCOMBINE/mppnccombine.exe" # NEED for Discover
+alias mytips="more ${MySysDir}/MyTips/mytips"
+alias pytips="more ${MySysDir}/MyTips/pytips"
+
+alias mop="more ~/.profile"
+alias mov="more ~/.vimrc"
+alias vop="vi ~/.profile"
+alias vov="vi ~/.vimrc"
+alias vmt="vi ${MySysDir}/MyTips/mytips"
+alias sop="cd ~; . .profile"
+
+alias myfunc="cd ${MySysDir}/MyFuncsKSH; ls"
+alias cx="chmod u=+r+w+x,g=+r-w+x,o=+x"
+
+# ############## MODEL E        #######################
+# alias modeler="cd /giss/${USERNAME}/EMODEL/DATA/RESULTS;ls"
+# alias modelen="cd /giss/${USERNAME}/EMODEL/DATA/NETCDF;ls"
+# alias modelel="cd /giss/${USERNAME}/EMODEL/LISTING;ls"
+# alias decke="cd /giss/${USERNAME}/EMODEL_GISS_HOME/decks;ls"
+
+#export CVS_RSH=ssh
+#export CVS_SERVER=/u/exec/cvs
+CVSEDITOR=vi; export CVSEDITOR
+#CVSROOT=???;  export CVSROOT
+
+CVS_ROOT_DIRAC="dirac:${ARCHIVE}/CVS_TNL"
+CVS_SERVER="CVS_SERVER=/usr/bin/cvs cvs -d ${CVS_ROOT_DIRAC} "
+export CVS_ROOT_DIRAC CVS_SERVER
+alias cvs_srv="$CVS_SERVER"
+alias cvs_srv_status="$CVS_SERVER status > $TMPDIR/z_cvs_srv_status; vi $TMPDIR/z_cvs_srv_status"
+
+################################################################
+################################################################
+#
+alias mail2ACES="${MySysDir}/Mail2Local/mail2ACES.ksh  $1"
+
+alias get_new="${MySysDir}/Templates/generate_template.pl $1"
+
+alias get_nice_f90="${MySysDir}/EmacsBatch/f90_indent.ksh $1"
+
+alias pbs_me="$HOME/PBS_PUSK/pbs_me.ksh "
+
+alias lpl2p="$HOME/POST_PROC/do_copy_LPL_palm.ksh $1"  # Discover
+alias lpl4d="$HOME/POST_PROC/do_untar_LPL.ksh $1"      # Palm
+
+##### TO DO: changes to alias !!! #############################
+# insert comment box in VI
+#PATH=$PATH:${MySysDir}/Perl2Vim  # link to ~/bin/
+#
+#
+if [[ $MACHINE = "poncho" || $MACHINE = "athena" ]]
+then
+   print "\nWe are on $MACHINE : OS=$OS"
+   platform=sgi
+   alias vim="/usr/local/bin/vim"
+   alias vi="/usr/local/bin/vim"
+   alias more="more -i -w"
+   alias m="more -i -w"
+fi
+
+if [[ $MACHINE = "dirac" ]]
+then
+   print "\nWe are on Dirac: OS=$OS"
+   platform=sgi
+   alias vim="/home0/${USERNAME}/VIM_SGI/bin/vim"
+   alias gvim="/home0/${USERNAME}/VIM_SGI/bin/gvim"
+   alias vi="/home0/${USERNAME}/VIM_SGI/bin/vim"
+fi
+
+if [[ $CHIP = "ia64" ]]
+then
+  print "\nWe are on Palm: OS=$OS"
+  platform=alt
+  PATH=$PATH:/explore/nobackup/projects/GISS/exec
+# PATH=$PATH:/explore/nobackup/projects/GISS                # Delete ?
+fi
+
+if [[ $CHIP = "x86_64" ]]
+then
+  print "\nWe are on Discover: OS=$OS"
+  platform=clt
+# vim_path="/usr/local/other/SLES11.3/vim/7.4/bin"
+  vim_path="/usr/local/other/SLES11.3/vim/8.0/bin"    # 03.02.17 - 16:57
+  PATH=$PATH:/discover/nobackup/projects/giss/exec    # Reto's stuff
+  PATH=$PATH:/usr/local/other/ncarg_install/4.4.1/bin # NCARG stuff
+  alias   vi=${vim_path}/vim
+  alias  vim=${vim_path}/vim
+  alias gvim="${vim_path}/gvim"
+fi
+
+    ##############
+   ##          ##
+  ##  MODULES ##
+ ##          ##
+##############
+
+if [[ $MACHINE != @(athena|poncho) ]]
+then
+  . ${MODULESHOME}/init/ksh
+  module purge
+else
+  print "No modules loaded ..."
+fi
+
+if [[ $CHIP = "ia64" ]]
+then
+  module   load intel-comp.9.1.039
+  module   load scsl.1.5.1.1
+  module   load mpt.1.12.0.0
+  module   load pd-vim-7.1
+
+############# X D I F F   #####################################
+  module   load pd-xdiff-3.4
+  export XUSERFILESEARCHPATH=~/XDIFF3.4/%N
+  alias xdiff="/local/LinuxIA64/xdiff/xdiff3.4/bin/xdiff -geometry 1300x800+10+10"
+################################################################
+  module   load pd-netcdf-3.6.0-p1
+  module   load pd-ncarg.4.4.1
+
+  export ESMF_DIR="/home/trayanov/baselibs/v2_2rp2_nb2/LinuxIA64"  # from Clune
+  alias set_esmf="print 'make setup RUN=xxx MP=NO ESMF=YES NPES=2 COMPILER=Intel8 ESMF_DIR=${ESMF_DIR} ESMF_BOPT=O'"
+fi
+
+if [[ $CHIP = "x86_64" ]]   # Discover
+then
+# The order to load model is matter !!!
+
+# module avail  2>&1 | tee z_modules
+  module purge
+# module load other/vim-7.4
+  module load other/vim-8.0            # 03.02.17 - 15:40
+# module load comp/intel-11.1.072      # mE
+# module load comp/intel-12.0.1.107    # 02.23.11
+  module load comp/intel-14.0.3.174    # 09.11.16 # allinea
+# module load comp/intel-16.0.0.109    # 12/01/15
+# module load comp/intel-16.0.3.210    # 09/11/16
+
+# module load mpi/impi-4.1.0.024       # 10.28.13
+  module load mpi/impi-4.1.3.048       # 09.11.16 # allinea
+
+# module load other/git-1.7.3.4        # 01.11.11
+# module load other/git-1.8.5.2        # 08.22.14
+  module load other/git-2.9.3          # 09.11.16
+
+  # Intel's Math Kernel Library,
+  # Note the major version numbers of the MKL and Intel
+  #  compiler suite should match, here version 9
+# module load   lib/mkl-9.1.023
+
+  module load tool/tview-8.9.2.2
+# module load tool/allinea-tools-6.0.0 # 03.22.16
+# module load tool/allinea-tools-6.0.4 # 09.11.16
+# module load tool/allinea-tools-6.1.0 # 01.20.17
+  module load tool/allinea-tools-7.0.4 # 07.26.17 - 18:49
+
+# module   load pd-netcdf-3.6.0-p1
+# module   load pd-ncarg.4.4.1
+
+# module load other/vim-7.1     # TNL corrected 07-11-08
+
+  export ESMF_DIR="/usr/local/other/baselibs/v2_2rp2_213.34meta/Linux" # ???
+  export COMPILER=Intel8
+
+fi # [[ $CHIP = "x86_64" ]]
+
+export ESMF_BOPT=O
+
+ulimit -s unlimited
+ulimit -v unlimited
+ulimit -c  0
+
+# Library ksh functions:
+if [[ $OS = "Linux" ]]
+then
+FPATH=${MySysDir}/MyFuncsKSH
+. ${MySysDir}/MyFuncsKSH/path-funcs-sh
+fi
+
+if [[ $OS = "SGI" ]]
+then
+  export TZ=America/New_York
+  FPATH=${MySysDir}/MyFuncsKSH
+. ${MySysDir}/MyFuncsKSH/path-funcs-sh
+fi
+export FPATH
+
+################### FERRET START ###################################
+if [[ $CHIP = "x86_64" ]]
+then
+# . ${MySysDir}/DotsFiles/ferret_paths_gui   # use: " . /home/ntausnev/MySysDir/DotsFiles/ferret_paths_gui "
+  . ${MySysDir}/DotsFiles/ferret_paths_69
+
+#  alias ferret="${FER_DIR}/bin/ferret -nojnl"
+print "Choice: ferret ${MySysDir}/DotsFiles/ferret_paths_65 "
+print "            or ${MySysDir}/DotsFiles/ferret_paths_69"
+fi
+#PATH=$PATH:${FER_DIR}/bin     # did link ferret to ~/bin/ferret
+function clean_ferret
+{
+  \rm  -f `find . -name "ferret.jnl*" `
+  \rm  -f `find . -name "metafile.plt*" `
+} # end function clean_ferret
+#
+alias fg="ferret -gui"
+function set_ferret_gui
+{
+    export FER_DIR=/discover/nobackup/ntausnev/ferret_65
+
+    RPATH="/usr/local/other/SLES11.1/Ferret/v6.9/bin"  # Delete
+    APATH="/discover/nobackup/ntausnev/ferret_65/bin"  # Add dir
+
+    PATH=$( echo ${PATH} | tr -s ":" "\n" | grep -vwE "(${RPATH})" | tr -s "\n" ":" | sed "s/:$//" )
+#   rmpath $RPATH # remove directory or directories from $PATH
+
+    PATH=$PATH:${APATH}
+#   addpath ${APATH}
+#   checkpath
+    path
+}
+################### FERRET  END  ###################################
+
+    ################
+   ##            ##
+  ##  FUNCTION  ##
+ ##            ##
+################
+function lrid # List  Run Id are running on machine
+{
+  usage=" lrid "
+  typeset list=$(qpbs | grep "${USERNAME} s1001 " | awk '{ print $7}'|  tr "\n" " ")
+  typeset num=$(print $list | wc -w )
+  print "List of $num running jobs are: \n"
+  print "$list\n"
+
+} # end function lrid
+######################################
+function mrid # List  Run Id are missing
+{
+  usage=" mrid "
+  /home/ntausnev/POST_PROC_TNL_nc/list_miss_rid.ksh
+
+} # end function mrid
+######################################
+function gorid
+# Go Run Id Directory
+{
+  usage="gorid runId"
+  typeset dir=${NOBACKUP}/RUNS_ME/$1
+  if [[ ! -d $dir ]]
+  then
+    print "Can't find directory $dir"
+    print "Check runId=$1"
+    return
+  fi
+  cd $dir && ls
+} # end function gorid
+######################################
+
+function path
+# show PATH elements one per line
+{
+   print $PATH | tr ':' '\n'
+}  # end function path
+######################################
+
+function lib_path
+# show PATH elements one per line
+{
+   print $LD_LIBRARY_PATH | tr ':' '\n'
+}  # end function lib_path
+######################################
+
+function manpath
+{
+   print $MANPATH | tr ':' '\n'
+} # end function manpath
+######################################
+
+function mcd
+{
+usage="mcd directory"
+if [[ ! -d $1 ]]
+then
+  print "Can't find directory $1"
+fi
+cd $1 && ls *
+}       # end function mcd
+######################################
+
+function while_read_LINE
+{
+usage="while_read_LINE file_name"
+# Does the file exist as a regular file?
+[[ -f $1 ]] || usage
+
+cat $1 | while read LINE
+do
+        echo "$LINE"
+        :
+done
+} # end function while_read_LINE
+######################################
+
+function psg  # ps and grep
+{ /bin/ps -eaf | grep -i ${USERNAME} "$@" | grep -v " grep -i" | grep -v " /bin/ps -eaf";
+}
+######################################
+
+function mtc      # my tee command
+{
+#  print "\nInput mtc= "
+#  print "$*"
+
+   last=`expr "$*" : '.* \(.*\)'`     # LAST ARGUMENT
+   first=`expr "$*" : '\(.*\) .*'`    # ALL BUT LAST ARGUMENT
+
+   name_script=$1
+
+#  print "\nlast=$last"
+#  print "\nfirst=$first"
+   typeset CMND
+   if [ ! -f ${name_script} ]
+   then
+    print "\n>>> Can't find file  <<<"
+    print ">>>   ${name_script}"
+    return 13
+   fi
+   if [ ! -e ${name_script} ]
+   then
+     chmod u+x ${name_script}
+   fi
+
+   CMND="$* 2>&1 | tee z_log_${name_script}"
+   print "Execution: $CMND\n"
+   eval $CMND
+}  #  function mtc / My Tee Command
+######################################
+
+function go_eclean
+# USAGE = go_eclean PROG=abc
+{
+  my_getopts "$@" # process the command line options.
+  mkFile=${MySysDir}/MAKEFILES/Makefile_project.mk
+  gmake -f ${mkFile} PROG=${PROG} eclean
+}
+######################################
+
+function go_oclean
+# USAGE = go_oclean PROG=abc
+{
+  my_getopts "$@" # process the command line options.
+  mkFile=${MySysDir}/MAKEFILES/Makefile_project.mk
+  gmake -f ${mkFile} PROG=${PROG} oclean
+}
+######################################
+
+function go_mclean
+# USAGE = go_mclean PROG=abc
+{
+  my_getopts "$@" # process the command line options.
+  mkFile=${MySysDir}/MAKEFILES/Makefile_project.mk
+  gmake -f ${mkFile} PROG=${PROG} mclean
+}
+######################################
+
+function go_cclean
+# USAGE = go_cclean PROG=abc
+{
+  my_getopts "$@" # process the command line options.
+  mkFile=${MySysDir}/MAKEFILES/Makefile_project.mk
+  gmake -f ${mkFile} PROG=${PROG} cclean
+} # end function go_cclean
+######################################
+
+function clean_hyc
+{
+  usage="clean_hyc runId"
+  if [ $# -lt 1 ] ; then
+     print "You forgot input runId"
+     return
+  fi
+
+  runId=$1
+  typeset dir=${NOBACKUP}/RUNS_ME/$1
+  if [[ ! -d $dir ]]
+  then
+     print "Can't find directory $dir"
+     print "Check runId=$1"
+     return
+  fi
+  cd $dir && rm -rf                 \
+         nin_${runId}_????_????.txt \
+         sst_${runId}_????_????.txt \
+        ovmx_${runId}_????_????.txt
+} # end function clean_hyc
+######################################
+alias go_run="${MySysDir}/MAKEFILES/go_run.ksh"
+alias gorun="${MySysDir}/MAKEFILES/go_run.ksh"
+######################################
+
+function my_getopts {
+#- version 3.141592, 2002-02-02, Michael Wang <xw73@columbia.edu>.
+typeset PATH= SEP= i
+typeset -u _I
+for i; do
+   _I=$i
+   eval ${_I%%?(:)=*}= unset ${_I%%?(:)=*}
+   case $_I in
+#    *[!:]=*) eval $(IFS=$SEP; print ${_I%%=*}=\"${_I#*=}\")   ;; # Original
+     *[!:]=*) eval $(IFS=$SEP; print ${_I%%=*}=\"${i#*=}\")    ;; # TNL
+     *:=*)    eval $(IFS=$SEP; print ${_I%%:=*}=\"${i#*:=}\")  ;; # Original
+   esac
+done
+} #  end  function my_getopts
+######################################
+#Show current directory in the XTerm window title bar:
+if [ "$TERM" = xterm ] || [ "$TERM" = dtterm ] \
+                       || [ "$TERM" = vt100 ]; then
+   alias cd=Xcd
+   Xcd ()
+   {
+      if [ $# -ne 0 ]; then
+         'cd' "$@"
+      else
+         'cd'
+      fi
+      NAME="$(uname -n):${PWD}"
+      # reset name of xterm title bar & icon to $NAME
+      echo -e "\033]0;${NAME}\007\c"  # set title bar & icon
+   }
+#  Xcd .      # Does not work with PuTTY
+fi
+######################################
+# Displaying only the subdirectories from the current
+# directory:
+lsd ()
+{
+  ls -l | awk '{ if ( substr($1,1,1)== "d") {print}}'
+}
+# Here is an easier command to list sub_directories alone:
+# ls -l | grep ^d
+# \ls -d */
+######################################
+# Improved cd: cdh
+# the purpose of the improved cd is to change to a directory when you
+# remember only partly the name of directory you want to go.
+#
+cdh ()
+{
+    if [ $# = 0 ]; then
+       cd
+    else
+	case $1 in
+	.)  echo "you are already in " ;;
+	..) thisdir=`pwd`
+	    prevdir=`dirname $thisdir`
+	    cd $prevdir ;;
+	*)  counter=`ls -l | grep "^d.*${1}" |awk '{print $9}' |wc -l`
+	    counter=`expr $counter + 0`
+	    case $counter in
+	    1)	cd `ls | grep "$1"`
+		pwd ;;
+	    0)	if test -d $1
+		then cd $1
+		else echo "no such directory"
+		fi ;;
+	    *)	echo "the options are"
+		for i in *$1*
+		do test -d $i && echo "$i"
+		done ;;
+	    esac ;;
+	esac
+    fi
+}
+######################################
+# We know we can repeat the last command starting with a specified word,
+# for example: !vi (bash) or r vi (ksh).
+# Sometimes I need to look for a file object of the command and not for the
+# command itself; so I wrote a little function:
+function cmd
+{
+   # USAGE: cmd patern from_last_lines history
+   history -999 | tail -${2:-999} | awk -v tofind=${1:-[0-9]} '($0!~/ cmd /) &&
+   ($0~tofind) { print }'
+
+}
+# its execution is simple:
+# $ cmd [<to_find>] [<tail_element>]
+#
+#If you run cmd alone you pick one of the last commands except "cmd" itself
+# from the last 10 lines of the history file.
+
+#$ cmd
+#If you specify the <to_find> variable you pick all the commands matching
+#your criteria
+#$ cmd bash
+#If you specify <tail_element> option and <to_find> variable you pick all
+#the command matching your criteria in the last <tail_element> rows
+#$ cmd bash 30
+######################################
+function k9
+{
+   kill -9 $@
+} # end function k9
+######################################
+
+function lf
+{
+   \ls -ahglrtF $* | more;
+}
+######################################
+function lsbd # lsbd start_find
+{
+  pattern="$1"  # Eh_s
+  ls -p | grep "/" | grep ${pattern}
+}
+
+function ld1
+{
+pattern="$1"
+printf "   %s\n" ${pattern}*/
+#printf "%s\n" */
+}
+function ld1m
+{
+pattern="$1"
+printf "   %s\n" ${pattern}*/ | more
+}  # end function ld1
+######################################
+
+function build_pbs
+{
+   DIR_RUN=$1
+   RUNID=$2
+   MY_SCRIPTS="$HOME/MFILE_E"
+
+   cd ${DIR_RUN}; sed '1d' E > pbs_end
+   cat ${MY_SCRIPTS}/pbs.top pbs_end > pbs_pusk
+   perl -pi.bak -e "s/E3ntXXXXX/${RUNID}/ig" pbs_pusk
+   \rm -f pbs_end pbs_pusk.bak
+   chmod ugo+x pbs_pusk
+}  # end function build_pbs
+######################################
+
+function d2p # copy file from discover to palm
+{
+   file_dscv=$1  # Discover file
+   file_palm=$2  # Palm abs path name file
+   scp ${file_dscv} palm.nccs.nasa.gov:${file_palm}
+}  # end function d2p
+######################################
+
+function d4p # copy file from palm
+{
+   file_palm=$1  # Palm abs path name file
+   file_dscv=$2  # Discover file
+   scp palm.nccs.nasa.gov:${file_palm} ${file_dscv}
+}  # end function d4p
+######################################
+
+function p2d # copy file from palm to discover
+{
+   file_palm=$1  # Palm     name file
+   file_dscv=$2  # Discover name file
+   scp ${file_palm} discover.nccs.nasa.gov:${file_dscv}
+}  # end function p2d
+######################################
+
+function p4d  # copy file from palm to discover
+{
+   file_palm=$2  # Palm abs path name file
+   file_dscv=$1  # Discover file
+   scp ${file_palm} discover.nccs.nasa.gov:${file_dscv}
+}  # end function p4d
+######################################
+
+function cvs_me # check out current modelE
+#  USAGE= cvs_me name_dir
+{
+   typeset local_var
+   local_var=${CVS_SERVER}
+   unset CVS_SERVER
+   export CVSROOT=simplex.giss.nasa.gov:/giss/cvsroot; export CVS_RSH=ssh
+   modelE_new_name=$1
+   cvs checkout  -d ${modelE_new_name} modelE
+   CVS_SERVER=${local_var}
+}  # end function cvs_me
+######################################
+######################################
+function tar_clean  # tar directory && remove original directory
+#  USAGE= tar_clean directory
+{
+  typeset dir=$1
+  if [[ ! -d $dir ]]
+  then
+    print "Can't find directory $dir"
+    print "Check name directory $1"
+    return
+  fi
+  tar -cf $dir.tar $dir && \rm -rf $dir
+}  # end function tar_clean
+######################################
+function num_files  # number files in directory
+#  USAGE= num_files dir
+{
+  typeset dir=$1
+  typeset num_files
+  if [[ ! -d $dir ]]
+  then
+    print "Can't find directory $dir"
+    print "Check name directory $1"
+    return
+  fi
+  num_files=$(\ls $dir | \wc -w)
+  print "Total number files in directory $dir is $num_files"
+}  # end function function num_files
+######################################
+function cvs_me_set # set cvs for me
+#  USAGE= cvs_me_restore
+{
+   unset CVS_SERVER
+   export CVSROOT=simplex.giss.nasa.gov:/giss/cvsroot; export CVS_RSH=ssh
+}  # end function cvs_me_set
+######################################
+function cvs_me_update # cvs update current modelE
+#  USAGE= cvs_me_update
+{
+   typeset local_var
+   local_var=${CVS_SERVER}
+   unset CVS_SERVER
+   export CVSROOT=simplex.giss.nasa.gov:/giss/cvsroot; export CVS_RSH=ssh
+   cvs update
+   CVS_SERVER=${local_var}
+
+}  # end function cvs_me_update
+######################################
+function clean_me # clean before compiling
+#  USAGE= clean_me
+{
+  gmake clean
+  gmake vclean
+
+  cd ../model && find . -name "*.ERR" -type f -delete
+  print "Working dir $PWD"
+  find . -name "*.ERR" -print
+
+# rm  -f `find . -name "*.ERR" `
+# find ../model -name "*.ERR" -type f -delete
+
+
+}  # end function clean_me
+######################################
+function setup_me # print string for setup
+#  USAGE= setup_me runId  [ NO # for serial ]
+#
+{
+  typeset runId=$1
+  typeset esmf
+
+  esmf="NO"
+
+  print "\n export runId=${runId} ; \
+  make -j6 setup-run RUN=\$runId MP=NO ESMF=$esmf MPIDISTR=intel NPES=24 \
+  EXTRA_FFLAGS=\"-I/usr/local/intel/mpi/4.1.3.048/intel64/include -g -O0 -traceback -assume protect_parens -fp-model strict -fp-speculationoff -CB -fpe0 -check uninit -ftrapuv -V\"  \
+  2>&1 | tee z_setup_\$runId
+
+  export runId=${runId} ; \
+  make -j6 setup-run RUN=\$runId COMPILE_WITH_TRAPS=YES MP=NO ESMF=$esmf MPIDISTR=intel NPES=24 \
+  EXTRA_FFLAGS=\"-I/usr/local/intel/mpi/4.1.3.048/intel64/include -traceback -V\" 2>&1 | tee z_setup_\$runId
+
+  export runId=${runId} ; \
+  make -j6 setup-run RUN=\$runId MP=NO ESMF=$esmf MPIDISTR=intel NPES=24 \
+  EXTRA_FFLAGS=\"-I/usr/local/intel/mpi/4.1.3.048/intel64/include -traceback -V\" 2>&1 | tee z_setup_\${runId} "
+
+}  # end function setup_me
+######################################
+function setup_imode # setup interactive mode
+#  USAGE=setup_imod
+#
+{
+echo "
+Input next lines from here:
+module purge;
+. /etc/profile.d/modules.sh
+. ~/.profile
+module purge;
+. /etc/profile.d/modules.sh
+module load comp/intel-14.0.3.174 mpi/impi-4.1.3.048
+module load other/comp/gcc-4.9.1 tool/allinea-tools-6.0.4
+module load other/git-2.9.3
+
+until here
+"   # close print
+}  # end function setup_imode
+######################################
+
+function dir
+{
+   ls -ahlrtF $* | more ;
+}
+######################################
+
+function prd # PRofile Diff
+{
+  diff ~/.profile ~/SYSTEMS/profile
+} # function prd
+######################################
+
+function prs # PRofile Save
+{
+  cp -p ~/.profile ${MySysDir}/DotsFiles/profile
+} # function prs
+######################################
+
+function pr2cvs  # profile into CVS  "cvs  message "
+# pr2cvs "Message2cvs"
+{
+  cp -p ~/.profile ${MySysDir}/DotsFiles/profile
+  msg_cvs=$1
+  ( cd  ${MySysDir}/DotsFiles;
+#   eval ${CVS_SERVER} -T $TMPDIR commit -m \"$msg_cvs\" profile )
+    eval ${CVS_SERVER}  commit -m \"$msg_cvs\" profile )
+} # function pr2cvs
+function pr4cvs  # profile from CVS  "cvs  message "
+{
+  ( cd  ${MySysDir};
+#      eval ${CVS_SERVER} -T $TMPDIR checkout -d . DotsFiles/profile )
+       eval ${CVS_SERVER}            checkout -d DotsFiles MySysDir/DotsFiles )
+  cp -p ${MySysDir}/DotsFiles/profile  ~/.profile
+} # function pr4cvs
+######################################
+
+function vimrc2cvs  # vimrc into CVS  "cvs  message "
+# vimrc2cvs "Message2cvs"
+{
+  cp -p ~/.vimrc ${MySysDir}/DotsFiles/vimrc
+  msg_cvs=$1
+  (cd  ${MySysDir}/DotsFiles;
+    eval ${CVS_SERVER}  commit -m \"$msg_cvs\" vimrc )
+} # function vimrc2cvs
+function vimrc4cvs  # vimrc from CVS  "cvs  message "
+{
+  (cd  ${MySysDir};
+       eval ${CVS_SERVER} checkout -d DotsFiles MySysDir/DotsFiles )
+  cp -p ${MySysDir}/DotsFiles/vimrc  ~/.vimrc
+} # function vimrc4cvs
+######################################
+function ci2cvs  # into CVS  "cvs  message "
+# ci2cvs "Some Message2cvs" nameFile
+{
+  msg_cvs=$1
+  file=$2
+  print  eval ${CVS_SERVER}  commit -m \"$msg_cvs\" $file
+  eval ${CVS_SERVER}  commit -m \"$msg_cvs\" $file
+} # function ci2cvs
+
+######################################
+showVals () {
+# showVals varname [ varname(s) ]
+  for i in $*; do
+    eval echo "\ \ \#\#  $i=\(\$$i\)"
+  done
+}
+######################################
+function trid # Time in Run Id Directory
+{
+  typeset runId
+  if [[ $# < 1 ]]; then
+     print "\nYou should supply at least ONE runId name at"
+     print "    ${CMRUNDIR} directory"
+     return
+  else
+    for runId in $*
+    do
+    typeset runIdDir="${CMRUNDIR}/${runId}"
+#   Check the dump directory exists
+    if [[ ! -d "${runIdDir}" ]]; then
+       print "\n${runIdDir} does not exist !!!\n"
+       print "\nCheck runId=${runId} !!!\n"
+       return
+    else
+       print "\n=========> runId= ${runId} at fort.1 & fort.2"
+       qce ${runIdDir}/fort.1.nc | head --line=1
+       qce ${runIdDir}/fort.2.nc | head --line=1
+       print "\nTail from ${runIdDir}/${runId}.PRT file:"
+       tail ${runIdDir}/${runId}.PRT
+    fi
+    done
+  fi
+} # function trid # Time in Run Id Directory
+######################################
+function prid # Print in Run Id Directory
+{
+  typeset runId
+  typeset list_arg
+  typeset file1
+  typeset file2
+  integer num_arg
+  num_arg=$#
+
+  if (( num_arg > 0 ))
+  then
+    list_arg="$*"
+  else
+#   list_arg=$(qstat -a | grep ${USERNAME} | awk '{ print $4}'|  tr "\n" " ")
+    list_arg="Eh127x Eh127sc "
+  fi
+# print "Number of arg=${num_arg} list_arg=\" ${list_arg} \" "
+
+  for runId in ${list_arg}
+  do
+    typeset runIdDir="${CMRUNDIR}/${runId}"
+    typeset runIdDirL="${CMRUNDIR}/${runId}/00LPL"
+    typeset runIdDirAK="/discover/nobackup/ntausnev/RUNS_AKEY_diag" # Key Diagnostics
+    typeset runIdDirHD="/discover/nobackup/ntausnev/RUNS_ME/${runId}/z_00HYC_diag"
+#   Check the dump directory exists
+    if [[ ! -d "${runIdDir}" ]]; then
+      print "\n${runIdDir} does not exist !!!\n"
+      print "\nCheck runId=${runId} !!!\n"
+      return
+    else
+      print "\n --- runId= ${runId}           at fort.1 & fort.2 --- "
+      # if no files are given try fort.1 and/or fort.2
+
+      if [[ -s ${runIdDir}/fort.1 ]] ; then file1='fort.1' ; fi
+      if [[ -s ${runIdDir}/fort.1.nc ]] ; then file1='fort.1.nc' ; fi
+      if [[ -s ${runIdDir}/fort.2 ]] ; then file2="fort.2" ; fi
+      if [[ -s ${runIdDir}/fort.2.nc ]] ; then file2="fort.2.nc" ; fi
+
+
+
+      qce ${runIdDir}/$file1 | head --line=1
+      qce ${runIdDir}/$file2 | head --line=1
+      tail --line=-1 ${runIdDirL}/SAT.${runId} \
+                     ${runIdDirL}/Oice.${runId}
+      if [[ -s ${runIdDirAK}/AKEY.${runId}  ]]
+      then
+        tail --line=-1 ${runIdDirAK}/AKEY.${runId} ${runIdDirAK}/IKEY.${runId}
+      fi
+      if [[ -s ${runIdDirHD}/ann_${runId}.txt ]]
+      then
+        print "\n==> ${runIdDirHD}/ann_${runId}.txt: <=="
+        tail --line=-1 ${runIdDirHD}/ann_${runId}.txt
+      fi
+     fi
+  done
+} # function prid # Print in Run Id Directory
+######################################
+function check_lpl # Check 00LPL dir
+{
+  typeset runId=$1
+  if (( $# < 1 ))
+  then
+    print "Error: list_arg=\"$*\" "
+  else
+    print "You select  list_arg=\"$*\" "
+  fi
+  grid ${runId}
+  plot6h ${runId}
+  prid ${runId}
+  ld1
+  print " runId=${runId}; \
+   # Select year and print copy_lpl year"
+} # function check_lpl
+######################################
+function rest # Restart runId
+{
+  typeset runId
+  for runId in  $*
+  do
+    grid ${runId} && ( \rm -rf  lock; qsub *.slurm)
+  done
+
+} # function rest
+######################################
+function ressw # Restart runId
+{
+  typeset runId
+  for runId in  $*
+  do
+    grid ${runId} && ssw
+    touch I
+  done
+
+} # function ressw
+######################################
+function chrep # CHeck REPaire
+{
+  typeset runId
+  for runId in  $*
+  do
+    grid ${runId} && ( print "\n tail PRT file:\n";tail -5 *.PRT
+    print "\n";qce
+    print "\n\n +++ You can repaire chemistry run: +++ \n
+    /home/ntausnev/POST_PROC_TNL_nc/repaire_che.ksh ${runId} Year Month \n
+    and then
+    rest ${runId} " )
+  done
+
+} # function chrep
+#
+#
+######################################
+function copy_lpl # Copy 00LPL dir ===> 00LPL_year
+{
+  typeset year=$1
+  print " runId=EhABC; grid \${runId}; prid \${runId}; ld1; \
+   # Select year and print copy_lpl year"
+  cp -rp 00LPL 00LPL_${year}
+} # function copy_lpl
+######################################
+function crid # Check  run ID
+{
+  typeset runId
+  runId=$1
+  plot6h ${runId}
+  prid ${runId}
+  cd ${CMRUNDIR}/${runId}
+  ls 00[^L]*
+} # function crid #Check run Id
+######################################
+function copy2sibiria # copy files to dir $$ARCHIVE/z2Sibiria/
+{
+  typeset fileName
+  typeset dirOut=$ARCHIVE/z2Sibiria
+  if [[ $# < 1 ]]; then
+    print "\nYou should supply at least ONE fileName "
+     return
+  else
+    for fileName in $*
+    do
+      #   Check if the file exists
+      print fileName=$fileName
+      if [[ ! -a "${fileName}" ]]; then
+       print "\n${fileName} does not exist !!!\n"
+       print "\nCheck file name =${runId} !!!\n"
+       return
+      else
+       cp -p ${fileName} $dirOut/.
+       print "\n ---> file name = ${fileName} copied to $dirOut    "
+      fi
+    done
+  fi
+} # function copy2sibiria # copy files to $ARCHIVE/z4Siberia
+######################################
+function svd # Search Variable Definition
+{
+  typeset var=$1
+  ${MySysDir}/MyStuff/search_var.pl -d ${var} *.f *.f90 *.F *.F90 *.h 2>/dev/null
+} # function svd # Search Variable Definition
+######################################
+function del_lines # del_lines n1 n2 file1 file2 ..
+# Delete lines n1 - n2 from file(s)
+# USAGE="del_lines n1 n2 file1 [ file2 ..] "
+{
+  if (( $# < 3 )); then
+    print "\nYou should supply at least THREE arguments: n1 n2 file(s)"
+    print " Arguments in: $*   "
+    return
+  else
+    typeset n1
+    typeset n2
+    typeset nlines
+    typeset file
+    n1=$1
+    shift
+    n2=$1
+    shift
+
+    if (( n1 > n2 ))
+    then
+      print "\nThe first line number shold be LESS then the second"
+      return
+    fi
+    for file in $*
+    do
+      if [[ -f $file ]]
+      then
+        nlines=$(wc -l $file | awk '{print $1}')
+        if (( (n1 > nlines) ||( n2  > nlines) ))
+        then
+           print "\n n1=$n1, n2=$n2, Total number lines = ${nlines}"
+           return
+        fi
+        cp -p $file ${file}_old
+        perl -nle "print unless $n1 .. $n2" ${file}_old > $file
+      fi
+    done
+  fi
+} # function  del_lines # Delete lines n1 - n2 from file(s)
+
+function IntSn # show Interactive Sessions
+############## Examples Interactive Sessions #############################
+{
+cat <<%%%
+Select one:
+ export NUM_NODES=2
+ qsub -I -l walltime=01:00:00 -q datamove
+ xsub -I -V -W group_list=s1001 -q debug -l nodes=4:ppn=4,proc=wood,walltime=1:00:00 /usr/bin/ksh
+ xsub -I -V -W group_list=s1001 -q general_small -l nodes=\${NUM_NODES}:ppn=12,walltime=12:00:00 /usr/bin/ksh
+
+  qsub -I -q nccs3 -l select=2:ncpus=12,walltime=12:00:00   # This is working  02.26.14 - 09:50
+
+#######
+ export TVDSVRLAUNCHCMD=ssh; \
+ export NUM_NODES=2; \
+ xsub -I -V -W group_list=s1001 -q general_small -l nodes=\${NUM_NODES}:ppn=12,walltime=12:00:00 /usr/bin/ksh; \
+ export NUM_NODES=2
+
+# TOTALVIEW will need:
+
+module purge
+module load comp/intel-11.1.072 mpi/impi-4.1.0.024
+
+#export TOTALVIEW=/usr/local/toolworks/totalview.8.7.0-7/bin/totalview
+ export TOTALVIEW=/usr/local/toolworks/totalview.8.9.0-0/bin/totalview  # 01.25.11
+module load tool/tview-8.9.2.2
+module list
+cat \$PBS_NODEFILE
+
+export TVDSVRLAUNCHCMD=ssh; export NUM_NODES=2; \
+mpdboot -r ssh -n \${NUM_NODES} -f \$PBS_NODEFILE
+mpdtrace
+
+
+%%%
+} # end function IntSn
+######################################
+
+function do_public
+# changes all permissions to <rwx> for owner and <r> for the rest. RECURSIVELY
+{
+  find . -type f -exec chmod 744 {} \; # rwxr--r--   for files
+  find . -type d -exec chmod 745 {} \; # u=rwx,go=rx for directories
+} # end function do_public
+######################################
+
+function load_openMPI
+# load open MPI module for Interactive session
+{
+  module purge
+  module load comp/intel-9.1.052
+  module load mpi/openmpi-1.2.5/intel-9
+
+  module load tool/tview-8.9.2.2
+  module list
+} # end function load_openMPI
+######################################
+
+function load_intelMPI
+# load open MPI module for Interactive session
+{
+  module purge
+  module load comp/intel-10.1.017
+  module load mpi/impi-4.1.0.024
+  module load tool/tview-8.9.2.2
+  module list
+} # end function load_intelMPI
+######################################
+
+function load_intel_11
+# load open MPI module for Interactive session
+{
+  module purge
+  module load comp/intel-11.1.038
+  module load mpi/impi-4.1.0.024
+
+  module load tool/tview-8.9.2.2
+  module list
+} # end function load_intel_11
+
+function load_intel_14
+# load open MPI module for Interactive session
+{
+  module purge
+  module load comp/intel-14.0.3.174 mpi/impi-4.1.3.048 # e-mail Tom Clunie
+   module purge; module load comp/intel-14.0.3.174 mpi/impi-4.1.3.048 other/comp/gcc-4.9.1 other/git-1.8.5.2
+
+  module load tool/tview-8.9.2.2
+  module list
+} # end function load_intel_14
+######################################
+
+function get_nice_ksh
+{
+  typeset sourceIn
+  typeset sourceOut
+  sourceIn=$1
+  sourceOut=sourceOut
+  cp -p ${sourceIn} ${sourceIn}_orig
+  ~/MY_STUFF/fmt_ksh_script.pl -s2 -ksh ${sourceIn} ${sourceOut}
+  chmod ug+x ${sourceOut}
+  mv ${sourceOut} ${sourceIn}
+
+} # end function get_nice_ksh
+######################################
+function get_nice_rb
+{
+  typeset sourceIn
+  sourceIn=$1
+  cp -p ${sourceIn} ${sourceIn}_orig
+  ~/MY_STUFF/beautify_bash.rb  ${sourceIn}
+  chmod ug+x ${sourceIn}
+} # end function get_nice_rb
+######################################
+
+function get_nice_perl
+{
+  typeset sourceIn
+  typeset sourceOut
+  sourceIn=$1
+  sourceOut=sourceOut
+  cp -p ${sourceIn} ${sourceIn}_orig
+  /home/ntausnev/Perl-Tidy-20071205/perltidy ${sourceIn} > ${sourceOut}
+  chmod ug+x ${sourceOut}
+  mv ${sourceOut} ${sourceIn}
+
+} # end function get_nice_perl
+######################################
+
+function shMrc # show current .modelErc
+{
+  more ~/.modelErc
+} # end function shMrc
+######################################
+
+function find_name # find decks dir on the base of runId
+{
+  typeset name_file
+  name_file=$1
+  print "\nStart find file ${name_file} at directory:"
+  print " $PWD and below"
+  find . -name ${name_file} -print
+  return
+} # end function find_name
+######################################
+
+function rc_srl # set .modelErc for SERIAL
+{
+  cp -p ~/.modelErc_serial ~/.modelErc
+} # end function rc_srl
+
+function rc_scali # set .modelErc for SCALI MPI
+{
+  cp -p ~/.modelErc_mpi ~/.modelErc
+} # end function rc_scali
+
+function rc_ompi #set .modelErc for openMPI
+{
+  cp -p ~/.modelErc_openMPI ~/.modelErc
+} # end function rc_ompi
+######################################
+
+function lsrf # list fortran sources time reverse
+{
+  ls -la -rt *.f* *.f90* *.F* *.h
+} # end function lsrf
+######################################
+
+
+function lsf # list fortran sources
+{
+  ls -la  *.f* *.f90* *.F* *.h
+} # end function lsf
+
+######################################
+function lsk # list ksh sources
+{
+  ls -la  *.ksh*
+} # end function lsk
+######################################
+function lsrk # list ksh sources in reverse order
+{
+  ls -la -rt  *.ksh*
+} # end function lsrk
+######################################
+function lsrpl # list perl sources in reverse order
+{
+  ls -la -rt  *.pl*
+} # end function lsrpl
+######################################
+function lspl # list perl sources
+{
+  ls -la *.pl*
+} # end function lsrpl
+######################################
+function lspy # list python sources
+{
+  ls -la *.py*
+} # end function lspy
+######################################
+function lsrpy # list python sources in reverse order
+{
+  ls -la -rt *.py*
+} # end function lsrpy
+######################################
+
+
+function laf # list fortran filed
+{
+  ls -la *.f *.F90 *.F *.F90 *.h
+} # end function laf
+
+function larf # list fortran filed fresh last
+{
+  ls -lart *.f *.F90 *.F *.F90 *.h
+} # end function laf
+######################################
+function grid # Go Run Id Directory [ subdir ]
+{
+  typeset runId
+  typeset subdir
+  typeset dir
+
+  typeset runId=$1
+  typeset subdir=$2
+
+  dir=${CMRUNDIR}/${runId}/${subdir}
+  if [[ -d $dir ]]
+  then
+   cd $dir && ls
+  else
+    print "Can't find dir=$dir"
+  fi
+} # end function grid # Go Run Id Directory [ subdir ]
+######################################
+function ggrid # Go Run Id Directory [ subdir ]
+{
+  typeset runId
+  typeset subdir
+  typeset dir
+
+  typeset runId=$1
+  typeset subdir=$2
+
+  dir=/discover/nobackup/projects/giss_ana/users/ntausnev/RUNS_ME/${runId}/${subdir}
+  if [[ -d $dir ]]
+  then
+   cd $dir && ls
+  else
+    print "Can't find dir=$dir"
+  fi
+} # end function ggrid # Go Run Id Directory [ subdir ]
+
+
+function goar5 # GO /discover/nobackup/ntausnev/MEs/AR5 [ runID [subdir] ]
+{
+  typeset runId
+  typeset field
+  typeset dir
+
+  typeset runId=$1
+  typeset field=$2
+
+  dir=/discover/nobackup/ntausnev/MEs/AR5/${runId}/${field}
+  if [[ -d $dir ]]
+  then
+   cd $dir && ls
+  else
+    print "Can't find dir=$dir"
+  fi
+} # end function goar5
+######################################
+
+function goa # GO Archive [ runID [subdir] ]
+{
+  typeset runId
+  typeset field
+  typeset dir
+
+  typeset runId=$1
+  typeset field=$2
+
+  dir=${ARCHIVE}/${runId}/${field}
+  if [[ -d $dir ]]
+  then
+   cd $dir && ls
+  else
+    print "Can't find dir=$dir"
+  fi
+} # end function goa
+######################################
+function ghd # Go Hycom Diagnostics
+{
+  typeset runId
+  typeset dir
+
+  typeset runId=$1
+
+  dir=${CMRUNDIR}/${runId}/z_00HYC_diag
+  dir=/discover/nobackup/projects/giss_ana/users/ntausnev/RUNS_ME/${runId}/z_00HYC_diag
+  if [[ -d $dir ]]
+  then
+   cd $dir && ls
+  else
+    print "Can't find dir=$dir"
+  fi
+} # end function ghd # Go Hycom Diagnostics
+######################################
+function gad # Go Atm Diagnostics
+{
+  typeset runId
+  typeset dir
+
+  typeset runId=$1
+
+  dir=${CMRUNDIR}/${runId}/z_00ACC_diag
+  dir=/discover/nobackup/projects/giss_ana/users/ntausnev/RUNS_ME/${runId}/z_00ACC_diag
+  if [[ -d $dir ]]
+  then
+   cd $dir && ls
+  else
+    print "Can't find dir=$dir"
+  fi
+} # end function gad # Go Atm Diagnostics
+######################################
+
+
+function shMrc # show current .modelErc
+{
+  more ~/.modelErc
+} # end function shMrc
+######################################
+
+function start_phortran
+{
+#module purge
+#module load comp/intel-11.1.056 mpi/impi-4.1.0.024
+export JAVA_HOME=/usr/local/other/jdk/1.6.0_05_64bit
+export PATH=/usr/local/other/jdk/1.6.0_05_64bit/bin:$PATH
+/usr/local/other/eclipse/3.5.1/eclipse
+
+} # end function start_phortran
+######################################
+function del_older
+# Deletes files older than input hour at current dir
+# USAGE=del_older 5
+{
+   typeset -i hours_ago
+   typeset -i minutes
+   hours_ago=$1
+   (( minutes = hours_ago * 60 ))
+#  find . -amin +${minutes} -amin -90000  -exec rm {} \; #Problem
+   find . -mmin +${minutes}               -exec rm {} \;
+} # end function del_older
+######################################
+function del_rsf
+# Deletes rsf files but 1JAN*.rsf${runId}*
+# USAGE=del_rsf
+{
+  rm -rf  1[^J]*.rsf* 1JU*.rsf*
+} # end function del_older
+######################################
+function age_file # Age file in minutes
+# USAGE=age_file file
+{
+  typeset -i nowEpTime
+  typeset -i filemodifEpTime
+  typeset -i filageSeconds
+  typeset -i tdiff
+  typeset fil
+  fil=$1
+  #Present time in Epoch Time measured
+  nowEpTime=`date +%s`
+  #Modification time of file in Epoch Time units.
+  filemodifEpTime=`date +%s -r $fil`
+  #Age in seconds
+  filageSeconds=$(($nowEpTime-$filemodifEpTime))
+  #In minutes
+  tdiff=$(($filageSeconds/60))
+  echo $tdiff
+} # end function age_file
+######################################
+function do_ppb
+{
+  typeset runId
+  typeset current_dir
+  runId=$1
+  current_dir=$PWD
+  cd /home/ntausnev/POST_PROC_TNL
+  do_service_interactive_hyc.ksh ${runId}
+  cd ${current_dir}
+} # end function do_ppb
+######################################
+
+# simple versions. See add_path.sh for the clever ones,
+# we could source add_path.sh here, but these are ok and guaranteed to
+# be here
+# add_path () { [ -d $1 ] && eval ${2:-PATH}="\$${2:-PATH}:$1"; }
+# pre_path () { [ -d $1 ] && eval ${2:-PATH}="$1:\$${2:-PATH}"; }
+# del_path () { eval ${2:-PATH}=`eval echo :'$'${2:-PATH}: | sed -e "s;:$1:;:;g" -e "s;^:;;" -e "s;:\$;;"`; }
+# ask () { echo $N "${2:-$1?} "$C; read $1; }
+# keep it simple.
+# PATH=/bin:/usr/bin
+# add_path /sbin
+# add_path /usr/sbin
+######################################
+# Clean PATH variable and add .
+checkpath
+export PATH=.:$PATH
+export SFOR='*.f *.F *.f90 *.F90 *.h'
+export sfor='*.f *.F *.f90 *.F90 *.h'
+######################################
+######################################
+set -o   # this command is used to view current option settings
+if [[ $MACHINE != @(athena|poncho) ]]
+then
+  module list
+fi
+. ${MySysDir}/CDLIST/cdlist.ksh
+. $HOME/.env
+######################################
+
+export ACK_COLOR_FILENAME=on_cyan # ==> ack
+#
+function titleXterm  # Change title Xterm window
+{
+typeset -u upper
+typeset last_digits
+typeset title
+upper=$(hostname)
+last_digits=$(print $upper | sed 's/.*[^0-9]\(.*\)$/\1/')
+title=D_${last_digits}
+echo -e "\033]0;${title}\007\c"
+}
+titleXterm # change title window of xterm
+
+# To use Vim as a man-page viewer involves setting an environment variable
+#and adding a line to your .vimrc file.
+#let $PAGER=''
+
+export PAGER="/bin/sh -c \"unset PAGER;col -b -x | \
+  /usr/local/other/SLES11.3/vim/7.4/bin/vim -R -c 'set ft=man nomod nolist' -c 'map q :q<CR>' \
+  -c 'map <SPACE> <C-D>' -c 'map b <C-U>' \
+  -c 'nmap K :Man <C-R>=expand(\\\"<cword>\\\")<CR><CR>' -\""
+
+function listdirs
+{
+# list all the files in each directory argument.  No directory parts or headers
+  for dir in "$@"; do
+# arguments should be clean, but double check
+    [ -d "$dir" ] && ls -1 $dir
+  done
+}
+function del_rsf
+{
+  cd /discover/nobackup/ntausnev/RUNS_ME; list_rsf=$(find . -name 1*.rsf*.nc -print > z_rsf_fresh; grep -v JAN z_rsf_fresh > \
+    z_rsf_not_jan; cat z_rsf_not_jan | tr "\n" " "); print "Next files are deleting: ...\n $list_rsf"; \rm -f $list_rsf
+}  # function del_rsf
+
+function drift_loess
+{
+  typeset USAGE="drift_loess control_run control_start_year transient_run transient_start_year"
+  if [ $# -ne 4 ] ; then
+     print "Wrong input arguments"
+     print "\n USAGE: $USAGE \n"
+     return
+  fi
+
+  typeset R_LIBS_USER
+  export R_LIBS_USER=/gpfsm/dnb31/cpan2/cpan2-lib/R-2.13.1/lib64/R/library
+  typeset control_run=$1
+  typeset control_start_year=$2
+  typeset transient_run=$3
+  typeset transient_start_year=$4
+
+  /discover/nobackup/cpan2/cpan2-lib/R-2.13.1/lib64/R/bin/Rscript \
+   /discover/home/lnazare1/Loess_Smooth/drift_correct.R \
+    ${control_run} ${control_start_year} ${transient_run} ${transient_start_year}
+}
+function set_python_265
+{
+  ### PYTHON lines start ###
+
+  PATH=$PATH:/usr/local/other/python/2.6.5_intel-10.1.023/bin
+  export PYTHONPATH=/usr/local/other/python/2.6.5_intel-10.1.023/lib/python2.6/site-packages
+  alias python=/usr/local/other/python/2.6.5_intel-10.1.023/bin/python2.6
+  ### PYTHON  lines end   ###
+} # end function set_python_265
+######################################
+function set_python_254
+{
+#  alias py=/discover/nobackup/ntausnev/PYTHON/bin/python3.1
+#  alias pyi=/discover/nobackup/ntausnev/PYTHON/bin/idle3
+
+  PATH=$PATH:/usr/local/other/Python-2.5.4/bin
+  export PYTHONPATH=/usr/local/other/Python-2.5.4/lib/python2.5/site-packages
+  alias python=/usr/local/other/Python-2.5.4/bin/python2.5
+# alias wing="/discover/nobackup/ntausnev/Z_Deleted_Files/WING101/wing-101"
+  PATH=$PATH:/discover/nobackup/ntausnev/Z_Deleted_Files/WING101 # Added Python IDE
+} # end function set_python_254
+  ### PYTHON  lines end   ###
+######################################
+function copy2Odin
+{
+  typeset absPathFilesDirsIn="$1"
+  set -A files  ${absPathFilesDirsIn}
+  typeset integer n=${#files[@]}   # number of array elements
+  typeset integer i=0
+  while ((i<n))
+  do
+     file=${files[i]}
+     ((i=i+1))
+  done
+
+  for file in
+  do
+# typeset localName=$2
+  /bin/tar cvzf z4gsfc2pc.tgz ${absPathFileIn}
+  done
+
+  print "
+
+  In Cygwin window print next line:
+  scp ntausnev@discover.nccs.nasa.gov:${absPathFileIn} /cygdrive/c/Users/ntausnev/DISCOVER4/${localName}
+  "
+} # end function copy2Odin
+######################################
+function st_diag   # status diagnostics
+{
+  typeset runId=$1
+  cmd "akd " | grep "$runId "
+  prid  $runId;
+  print "\n"
+  ls -rt --time-style=long-iso /discover/nobackup/ntausnev/RUNS_ME/$runId/z_00HYC_diag/ann* | tail -7
+  tail -1 /discover/nobackup/ntausnev/RUNS_ME/$runId/z_00HYC_diag/ann_${runId}.txt  \
+          | awk '{print "Last record in ann_${runId}.txt =>   " $1 " " $2 " " $3 " ..."}'
+}
+######################################
+function akd   # atmospheric key diagnostics
+{
+  typeset runId=$1
+  typeset year_start=$2
+# typeset year_end
+  cd /home/ntausnev/POST_PROC_TNL_nc/KEY_DIAG
+# (( year_end = year_start + 9 ))
+  akey_hyc_diag.ksh ${runId} ${year_start}
+
+}
+######################################
+function pandas_matplotlib
+{
+   module purge
+   export LD_LIBRARY_PATH=""
+   module load other/SSSO_Ana-PyD/SApd_1.8.0
+} #end function pandas_matplotlib
+######################################
+function ppm # python + panda + mathplotlib
+{
+   module purge
+   export LD_LIBRARY_PATH=""
+   module load other/SSSO_Ana-PyD/SApd_1.8.0
+   ( /usr/local/other/SSSO_Ana-PyD/1.8.0/bin/python $1 )
+} #end function ppm
+######################################
+######################################
+#set -o nohup   # Don't kill running jobs with SIGHUP signal on exit
+export R_LIBS_USER=/gpfsm/dnb31/cpan2/cpan2-lib/R-2.13.1/lib64/R/library
+#export  PYTHONHOME=/usr/bin
+# vim: ft=sh
+function change_missing_value
+{
+    typeset nameFileIn=$1
+    typeset nameVar=$2
+    ncks -O -v ${nameVar} ${nameFileIn} z__.nc
+    ncatted -a missing_value,${nameVar},o,f,-1.0e34 z__.nc
+    ncatted -a _FillValue,${nameVar},o,f,-1.0e34 z__.nc
+    ncap2 -O -s "where(${nameVar}<=-500.0) ${nameVar}=-1.E+34" z__.nc out.nc
+
+}
+# PYTHONPATH=
+alias ggruns="cd /discover/nobackup/projects/giss_ana/users/ntausnev/RUNS_ME; ls"
+
+function rec_count_num_files
+{
+    typeset nameDir=$1
+    /usr/bin/perl ${MySysDir}/MyStuff/count_files_3.pl ${nameDir} | sort -n
+}
