@@ -1,2 +1,3 @@
 # MySysDir
 config files 
+alias
