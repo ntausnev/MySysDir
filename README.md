@@ -9,4 +9,4 @@ This line from angara
 
 this line from vim discover17
 second  line from vim discover17
-thirs line
+thirds line
