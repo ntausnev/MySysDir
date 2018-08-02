@@ -368,6 +368,10 @@ alias mybjobs="qstat -a | grep ${USERNAME}"
 alias mbj="qstat -a | grep ${USERNAME}"
 alias mbjt="/home/ntausnev/POST_PROC_TNL/mbj_fort.ksh"
 alias mgrep="${MySysDir}/MyStuff/mgrep.pl"   # skip tags files
+
+alias bqr="/discover/nobackup/projects/giss/exec/qb -ar s1001" # running batch jobs
+alias bqp="/discover/nobackup/projects/giss/exec/qb -ap s1001" # pending batch jobs
+
 alias rgrep="${MySysDir}/MyStuff/rgrep.pl"
 alias ack="${MySysDir}/MyStuff/ack.pl --pager='less -r' --sort-files "
 alias  rg="${MySysDir}/MyStuff/rg -i "
@@ -376,10 +380,10 @@ alias mppcombine="$HOME/MPPCOMBINE/mppnccombine.exe" # NEED for Discover
 alias mytips="more ${MySysDir}/MyTips/mytips"
 alias pytips="more ${MySysDir}/MyTips/pytips"
 
-alias mop="more ~/.profile"
-alias mov="more ~/.vimrc"
-alias vop="vi ~/.profile"
-alias vov="vi ~/.vimrc"
+alias mmp="more ~/.profile"
+alias mmv="more ~/.vimrc"
+alias vmp="vi ~/.profile"
+alias vmv="vi ~/.vimrc"
 alias vmt="vi ${MySysDir}/MyTips/mytips"
 alias sop="cd ~; . .profile"
 
@@ -459,6 +463,7 @@ then
   PATH=$PATH:/usr/local/other/ncarg_install/4.4.1/bin # NCARG stuff
   alias   vi=${vim_path}/vim
   alias  vim=${vim_path}/vim
+  alias rvim="${vim_path}/vim -R "  # only read mode
   alias gvim="${vim_path}/gvim"
 fi
 
@@ -1949,4 +1954,27 @@ function rec_count_num_files
 {
     typeset nameDir=$1
     /usr/bin/perl ${MySysDir}/MyStuff/count_files_3.pl ${nameDir} | sort -n
+}
+
+function clean_objs  # clean_objs dirIn
+{
+    typeset dirIn=${1}
+    typeset sfxs="mod smod o ERR"
+    if [[ $# -ne 1 ]]; then
+      print "\nYou should supply only ONE directory"
+      return 13
+    fi
+
+#   Check the directory exists
+    if [[ ! -d "${dirIn}" ]]; then
+       print "\nDirectory ${dirIn} does not exist !!!\n"
+       return 13
+    else
+       print "\n=========> Directory = ${dirIn} Cleaning objs files ..."
+       for sfx in ${sfxs}
+       do
+        find ${dirIn} -name "*.${sfx}" -print
+        find ${dirIn} -name "*.${sfx}" -exec rm -r {} \;
+       done
+    fi
 }
