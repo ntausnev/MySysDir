@@ -32,3 +32,8 @@ Added August 3 2018 from vim
 
 Tomorow 04.08.18
 Today 08.06.18
+time ydtdt
+YDT YDT YDT
+YDT
+ A 08.06.18 - 15:21
+ 08.06.18 - 15:21
