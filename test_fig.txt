@@ -7,4 +7,5 @@ line number 5
 
 
 Four empty lines
+I want include very long text after subject of commit
 
