@@ -2,3 +2,9 @@ The first line
 The second line
 08.07.18 - 16:50 new line
 08.07.18 - 17:00 next line
+line number 5
+
+
+
+Four empty lines
+
