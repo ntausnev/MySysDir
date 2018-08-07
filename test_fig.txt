@@ -2,10 +2,13 @@ The first line
 The second line
 08.07.18 - 16:50 new line
 08.07.18 - 17:00 next line
-line number 5
+line number x
 
 
 
 Four empty lines
 I want include very long text after subject of commit
+
+08.07.18 - 17:31 added the line
+
 
