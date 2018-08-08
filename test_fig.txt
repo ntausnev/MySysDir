@@ -15,4 +15,6 @@ I want include very long text after subject of commit
 08.07.18 - 18:16 next line
 08.08.18 - 08:40
 
+New line today
+
 
