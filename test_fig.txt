@@ -1,7 +1,7 @@
 The first line
 The second line
 08.07.18 - 17:00 next line
-line number AXYZ
+line number AXYZP
 08.07.18 - 19:13
 
 5 empty lines
@@ -10,9 +10,6 @@ Four empty lines
 I want include very long text after subject of commit
 
 08.07.18 - 17:31 added the line
-08.07.18 - 17:39 new next line
-08.07.18 - 18:16 next line
-08.08.18 - 08:40
 
 New line today
 08.08.18 - 08:51 again line today
@@ -24,3 +21,5 @@ New line today
 add angara
 
 08.13.18 - 11:58
+
+08.13.18 - 12:23
