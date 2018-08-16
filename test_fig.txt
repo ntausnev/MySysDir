@@ -19,6 +19,7 @@ New line today
 
 add angara
 
+08.14.18 - 12:12
 08.13.18 - 12:23
 G8.13.18 - 13:47
 
@@ -34,3 +35,7 @@ The 5th verion 08.13.18 - 15:24
 
 The 6th version 08.13.18 - 16:22
 
+The 7th revision 08.14.18 - 09:21
+
+The 8th revision 08.15.18 - 08:37
+The 9th revision 08.16.18 - 11:15
