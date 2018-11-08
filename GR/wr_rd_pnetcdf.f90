@@ -68,6 +68,15 @@ program simple_xy_par_wr
      data_out(x) = my_rank
   end do
 
+  call wr_par_netcdf()
+  call rd_par_netcdf()
+
+  ! MPI library must be shut down.
+  call MPI_Finalize(ierr)
+
+contains
+
+subroutine wr_par_netcdf
   ! Create the netCDF file. The NF90_NETCDF4 flag causes a
   ! HDF5/netCDF-4 file to be created. The comm and info parameters
   ! cause parallel I/O to be enabled. Use either NF90_MPIIO or
@@ -120,14 +129,48 @@ program simple_xy_par_wr
 
   ! Free my local memory.
   deallocate(data_out)
-
-  ! MPI library must be shut down.
-  call MPI_Finalize(ierr)
-
   if (my_rank .eq. 0) write(unit=*,fmt='(/,a,a,a)')  &
          "*** SUCCESS writing example file ", FILE_NAME, "! "
+end subroutine wr_par_netcdf
 
-contains
+subroutine rd_par_netcdf
+
+  integer, allocatable :: data_in(:)
+ ! Allocate space to read in data.
+  allocate(data_in(p), stat = stat)
+  if (stat .ne. 0) stop 3
+
+  ! Open the file. NF90_NOWRITE tells netCDF we want read-only access to
+  ! the file.
+  call check( nf90_open(FILE_NAME, IOR(NF90_NOWRITE, NF90_MPIIO), ncid, &
+       comm = MPI_COMM_WORLD, info = MPI_INFO_NULL) )
+
+  ! Get the varid of the data variable, based on its name.
+  call check( nf90_inq_varid(ncid, "data", varid) )
+
+  ! Read the data.
+  start = (/ 1, my_rank + 1, 1/)
+  count = (/ p, 1, 1 /)
+  call check( nf90_get_var(ncid, varid, data_in, &
+       start = start, count = count) )
+
+  ! Check the data.
+  do x = 1, p
+     if (data_in(x) .ne. my_rank) then
+        print *, "data_in(", x, ") = ", data_in(x)
+        stop "Stopped"
+     endif
+  end do
+
+  ! Close the file, freeing all resources.
+  call check( nf90_close(ncid) )
+
+  ! Free my local memory.
+  deallocate(data_in)
+  if (my_rank .eq. 0) write(unit=*,fmt='(/,a,a,a)')  &
+         "*** SUCCESS READING example file ", FILE_NAME, "! "
+end subroutine rd_par_netcdf
+
   subroutine check(status)
     integer, intent ( in) :: status
 
